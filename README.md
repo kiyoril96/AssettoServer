@@ -1,3 +1,6 @@
+### kiyori追記
+自作のパイロンアプリをサーバー上で共有するプラグインの開発用ブランチ
+
 # AssettoServer [![Build status](https://img.shields.io/github/actions/workflow/status/compujuckel/AssettoServer/dotnet.yml?logo=github&branch=master)](https://github.com/compujuckel/AssettoServer/actions/workflows/dotnet.yml) [![Discord](https://img.shields.io/discord/890676433746268231?logo=discord&label=Discord&color=7289da)](https://discord.gg/uXEXRcSkyz) [![Docker Hub](https://img.shields.io/docker/v/compujuckel/assettoserver?logo=docker&label=Docker)](https://hub.docker.com/r/compujuckel/assettoserver)
 
 ## About
