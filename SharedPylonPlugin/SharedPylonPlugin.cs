@@ -1,13 +1,9 @@
 ﻿using AssettoServer.Network.Tcp;
 using AssettoServer.Server;
 using AssettoServer.Server.Configuration;
-using AssettoServer.Server.Plugin;
-using AssettoServer.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using SharedPylonPlugin.Packets;
-using System.IO;
-using System.Net.Sockets;
 using System.Reflection;
 
 
@@ -44,7 +40,14 @@ public class SharedPylonPlugin : IHostedService
     private void OnSharedPylonPacket(ACTcpClient client, SharedPylonPacket packet)
     {
         if (client.IsAdministrator) {
-            pylonList.Add(packet);
+
+            if (packet.Delete)
+            {
+                pylonList.Clear();
+            }
+            else {
+                pylonList.Add(packet);
+            }
             _entryCarManager.BroadcastPacket<SharedPylonPacket>(packet);
         }
     }

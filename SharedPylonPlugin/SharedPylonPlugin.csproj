@@ -21,7 +21,12 @@
   </ItemGroup>
     
   <ItemGroup>
-    <None Update="lua\pylon.lua" />
+      <None Update="lua\pylon.lua">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="wwwroot\**\*">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
   </ItemGroup>
 
 </Project>

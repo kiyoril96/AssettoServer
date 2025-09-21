@@ -14,17 +14,40 @@ local config = ac.storage{
 local cones = {}
 local Index = 0
 
+local baseUrl = 'http://' .. ac.getServerIP() .. ':' .. ac.getServerPortHTTP() .. '/static/SharedPylonPlugin/'
+
+local SharedPylonEvent = ac.OnlineEvent({
+        ac.StructItem.key('AS_ShardPylon'),
+        position = ac.StructItem.vec3(),
+        isphys = ac.StructItem.boolean(),
+        color = ac.StructItem.vec4(),
+        delete = ac.StructItem.boolean()},
+    function (sender , data )
+        if sender == nil then
+            
+            if data.delete then
+                deleteAll()
+            else
+                addOne(data.position,data.isphys,rgbm(data.color.x,data.color.y,data.color.z,data.color.w),true)
+            end
+        end
+    end,nil,false
+)
 
 function availableCallback()
     local available = true
     return available
 end 
 
+function setEnableAllPhysics(active)
+    for i=1 , #cones do
+        if cones[i][2] then cones[i][2]:setEnabled(active) end
+    end 
+end
+
 function uiCallback()
     local uiActive = false
 
-
-    conesRef:setVisible(config.isActive)
     if config.isActive then
         if config.isPutMode then     
             local ray = render.createMouseRay()
@@ -38,6 +61,8 @@ function uiCallback()
 
     if ui.checkbox('##active',config.isActive) then
         config.isActive = not config.isActive
+        conesRef:setVisible(config.isActive)
+        setEnableAllPhysics(config.isActive)
     end
     ui.sameLine()
     ui.dwriteText('Active')
@@ -57,13 +82,13 @@ function uiCallback()
     if ui.button('Add One##addOne',vec2(100,30) ) then
         addOne(getPutPos(),config.color)
     end
-    ui.offsetCursorY(10)
-    if ui.button('Delete One##deleteAll',vec2(100,30) ) then
-        deleteOne()
-    end
+    -- ui.offsetCursorY(10)
+    -- if ui.button('Delete One##deleteAll',vec2(100,30) ) then
+    --     deleteOne()
+    -- end
     ui.offsetCursorY(5)
     if ui.button('Delete All##deleteAll',vec2(100,30) ) then
-        deleteAll()
+        SharedPylonEvent{position=vec3(),isphys=false,color=vec4(),delete=true}
     end
 
     ui.setCursor(vec2(180,30))
@@ -108,7 +133,6 @@ function uiCallback()
     ui.sameLine()
     ui.colorButton('Color', config.color, ui.ColorPickerFlags.PickerHueBar)
 
-
     return uiActive
 end
 
@@ -134,29 +158,17 @@ function getPutPos()
     return (( wheels[0].contactPoint + wheels[1].contactPoint )/2)  + offset
 end
 
-local SharedPylonEvent = ac.OnlineEvent({
-        ac.StructItem.key('AS_ShardPylon'),
-        position = ac.StructItem.vec3(),
-        isphys = ac.StructItem.boolean(),
-        color = ac.StructItem.vec4()},
-    function (sender , data )
-        if sender == nil then
-            addOne(data.position,data.isphys,rgbm(data.color.x,data.color.y,data.color.z,data.color.w),true)
-        end
-    end,nil,false
-)
-
 function addOne(pos,phys,txColor,flg)
 
-    if ac.getSim().isOnlineRace and SharedPylonEvent ~= nil and not flg then
-        SharedPylonEvent{position=pos,isphys=phys,color=vec4():set(txColor.r,txColor.g,txColor.b,txColor.mult)}
+    if ac.getSim().isOnlineRace and not flg then
+        SharedPylonEvent{position=pos,isphys=phys,color=vec4():set(txColor.r,txColor.g,txColor.b,txColor.mult),delete=false}
     end
 
     Index = Index + 1
     local cone
     local rigitBody =nil
 
-    web.loadRemoteModel('https://github.com/kiyoril96/kiyo-eng_acApps/releases/download/anywherePyron_2_1/kiyo-eng_anywherePyron.zip',
+    web.loadRemoteModel(baseUrl .. 'cone.zip' ,
     function(err,name)
         cone = conesRef:createNode("Pyron_"..Index,false):loadKN5(name)
         if physics then
@@ -190,15 +202,18 @@ function addOne(pos,phys,txColor,flg)
     end )
 end
 
-function deleteOne()
-    if #cones > 0 then
-        local latestCone = cones[#cones][1]
-        latestCone:dispose()
-        table.remove(cones,#cones)
-    end
-end
+-- function deleteOne()
+--     if #cones > 0 then
+--         cones[#cones][1]:dispose()
+--         if cones[#cones][2] then cones[#cones][2]:dispose() end
+--         table.remove(cones,#cones)
+--     end
+-- end
 
 function deleteAll()
+    for i=1 , #cones do
+        if cones[i][2] then cones[i][2]:dispose() end
+    end
     conesRef:dispose()
     conesRef=trackRef:createNode('CONES',false)
     table.clear(cones)
